@@ -1,0 +1,25 @@
+version: '3'
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver-2022-database 
+    command: /bin/bash /scripts/entrypoint.sh
+    volumes:
+      - dbdata:/var/opt/mssql
+      - ./db/scripts:/scripts
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+    ports:
+      - 1433:1433
+  flyway:
+    image: redgate/flyway
+    container_name: flyway
+    command: migrate -user=${DB_USER} -password=${DB_PASSWORD} -connectRetries=60
+    volumes:
+      - ./flyway/conf/:/flyway/conf
+      - ./flyway/sql/:/flyway/sql
+    depends_on:
+      - db
+volumes:
+  dbdata:
